@@ -1,0 +1,267 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{longtable}
+\usepackage{authblk}
+\usepackage{adjustbox}
+\usepackage{natbib}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Nicolás Huertas -201326730}
+\title{Herramientas Computacionales para la
+ Investigación Interdisciplinar Reproducible  Proyecto Final}
+% autores
+
+\author[1]{\normalsize Nicolás Huertas - 201326730}
+
+
+\affil[1]{\small  Departamenta de Ingeniería Industrial ,Universidad de los Andes\\
+\texttt{{n.huertas10}@uniandes.edu.col}}
+
+
+\date{30 de Junio de 2018}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\begin{figure}
+ \centering
+ \includegraphics[width = 3cm, height=1cm]{Uandes}
+\end{figure}
+\maketitle
+\begin{abstract}
+Este proyecto busca explorar herramientas computacionales como Python, R, Zotero y LATEX para la generación de trabajo replicable. En este caso se explorarán variables de desarrollo humano para el caso Colombiano por departamento. De esta forma se identificará cuales son los departamentos que tienen mejores indices y peores asi como ver la relación entre ellos. Para esto se hara un análisis univariado que permita identificar como se comporta cada inice luego
+\end{abstract}
+
+\section*{Introducción}
+
+Aqui les presento mi investigacion sobre diversos indices sociales en el mundo. Los indices los conseguí de wikipedia, espero que les gusten mucho. Aqui les presento mi investigacion sobre diversos indices sociales en el mundo. Los indices los conseguí de wikipedia, espero que les gusten mucho.Aqui les presento mi investigacion sobre diversos indices sociales en el mundo. Los 
+<<getData, echo=FALSE,results=tex>>=
+# carga de datos
+library(RColorBrewer)
+library(classInt)
+library(reporttools)
+library(xtable)
+library(stargazer)
+library(rgdal)
+library(cluster)
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+library(corrplot)
+library(GGally)
+
+
+filename="colombia.csv"
+colb=read.csv(filename, stringsAsFactors = FALSE)
+
+
+
+@
+
+ Comencemos viendo que hay en la sección \ref{univariada} en la página \pageref{univariada}.
+ 
+
+\section{Exploración Univariada}\label{univariada}
+ 
+ Para conocer el comportamiento de las variables se ha preparado la Tabla \ref{stats}, donde se describe la distribución de las modalidades de cada variable. Los números representan la situación de algun país en ese indicador, donde el mayor valor numérico es la mejor situación.
+% 
+<<results=tex,echo=FALSE>>=
+vars1 <- colb[,]
+
+stargazer(vars1,title = "Medidas estadísticas", label = "stats",summary.stat = c("n", "mean","median","min", "max"))
+@
+% 
+% 
+ Como apreciamos en la Tabla \ref{stats}, los países en la mejor situación son los menos, salvo en el caso del \emph{índice de libertas mundial}\footnote{Nótese que esto se puede deber a la {\bf menor} cantidad de categorías.}
+% 
+
+% 
+ Para resaltar lo anterior, tenemos la Figura \ref{barplots} en la página \pageref{barplots}. 
+% 
+%  
+% %%%%% figure
+\begin{figure}[h]
+\centering
+<<barplots, echo=FALSE,fig=TRUE>>=
+ a1 <- ggplot(colb, aes(IDH))
+ a1<- a1 + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="IDH histograma",x="IDH", y = "Count")
+p1 <- ggplot(colb, aes(Población.Cabecera))
+p1 <- p1 + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="Población Cabecera",x="Población Cabecera", y = "Count")
+p3 <- ggplot(colb, aes(Población.Resto))
+p3 <- p3 + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="Población Resto",x="Población Resto", y = "Count")
+r1 <- ggplot(colb, aes(Población.Total))
+r1 <- r1 + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="Población Total",x="Población Total", y = "Count")
+
+grid.arrange(a1, p1, p3, r1, ncol=2)
+@
+\caption{Distribución de Indicadores}
+\label{barplots}
+\end{figure}
+
+dado el sesgo de las pobaciones, podriamos transformarla para que se acerque a la  normalidad
+\clearpage
+ \begin{figure}[h]
+\centering
+%\begin{adjustbox}{width=7cm,height=7cm,clip,trim=1.5cm 0.5cm 0cm 1.5cm}
+<<barplots2, echo=FALSE,fig=TRUE>>=
+colb$cabeLog=log(colb$Población.Cabecera)
+colb$restoLog=log(colb$Población.Resto)
+colb$totalLog=log(colb$Población.Total)
+ a <- ggplot(colb, aes(cabeLog))
+ a<- a + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="Cabecera log histograma",x="log Cab", y = "Count")
+p <- ggplot(colb, aes(restoLog))
+p <- p + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="Resto log",x="log Rest", y = "Count")
+p2 <- ggplot(colb, aes(totalLog))
+p2 <- p2 + geom_histogram(aes(y=..density..), colour="black", fill="light blue", bins=6)+geom_density(alpha=.2, fill="#FF6666")+labs(title="Población Total",x="log Total", y = "Count")
+
+
+grid.arrange(a, p, p2, ncol=2)
+@
+%\end{adjustbox}
+\caption{Distribución de Indicadores normalizada}
+\label{barplots2}
+\end{figure}
+\clearpage
+% 
+% 
+\section{Exploración Bivariada}
+% 
+ En este trabajo estamos interesados en el impacto de la población en el nIDH. Veamos las relaciones bivariadas que tiene esta variable con todas las demás:
+% 
+<<corrDem, results=tex, echo=FALSE>>=
+# En este trabajo estamos interesados en el impacto de 
+# la poblacion en el el IDH, veamos IDH con cada uno:
+explanans=names(colb)[c(7:9)] # usando las logs
+corrDem=cor(colb$IDH,colb[,explanans],
+            use = "na.or.complete")
+stargazer(corrDem, title="Correlación de IDH con las demás variables",label = "corrDem")
+@
+
+% 
+Veamos la correlación entre las variables independientes:
+% 
+<<corrTableX, results=tex, echo=FALSE>>=
+corrTableX=round(cor(colb[,explanans],use = "na.or.complete"),2)
+corrTableX_copy=corrTableX
+corrTableX[upper.tri(corrTableX)]<-""
+
+stargazer(corrTableX, title="Correlación entre variables independientes",label = 'corrTableX')
+ 
+@
+
+
+
+Lo visto en la Tabla \ref{corrTableX} se refuerza claramente en la Figura \ref{corrPlotX}.
+
+\begin{figure}[h]
+\centering
+\begin{adjustbox}{width=7cm,height=7cm,clip,trim=1.5cm 0.5cm 0cm 1.5cm}
+<<corrPlotX, echo=FALSE,fig=TRUE>>=
+corrplot(corrTableX_copy, type = "lower", diag = F,
+         addCoef.col = "black")
+@
+\end{adjustbox}
+\caption{correlación entre predictores}
+\label{corrPlotX}
+\end{figure}
+
+
+
+
+
+
+% 
+% 
+\clearpage
+% 
+\section{Modelos de Regresión}
+% 
+Finalmente, vemos los modelos propuestos. Primero sin la libertad mundial como independiente, y luego con está. Los resultados se muestran en la Tabla \ref{regresiones} de la página \pageref{regresiones}.
+% 
+<<regresiones, echo=FALSE>>=
+LinRegA <- lm(IDH ~ ., data = colb[,c(1,7)])
+LinRegB <- lm(IDH ~ ., data = colb[,c(1,7:9)])
+@
+% 
+% 
+<<regresionesPlot,results=tex, echo=false>>=
+ stargazer(LinRegA ,LinRegB,title = "Modelos de Regresión", label = "regresiones")
+@
+% 
+Como se vió en la Tabla \ref{regresiones}, cuando está presente el \emph{indice de libertad mundial}, el \emph{índice de libertad de prensa} pierde significancia.
+ 
+\clearpage
+\section{Exploración Espacial}
+Calculemos conglomerados de regiones,usando toda la información de las tres variables. usaremos la tecnica de k-means propuesta por \cite{reynolds_clustering_2006}.
+
+ 
+Como acabamos de ver en la Tabla \ref{regresiones} en la página \pageref{regresiones}, si quisieras sintetizar la multidimensionalidad de nuestros indicadores, podríamos usar tres de las cuatro variables que tenemos (un par de las originales tiene demasiada correlación). 
+% 
+%Así, propongo que calculemos conglomerados de países usando toda la información de tres de los indicadores. Como nuestras variables son ordinales utilizaremos un proceso de conglomeración donde las distancia serán calculadas usando la medida {\bf gower} propuestas en \cite{gower_general_1971}, y para los enlazamientos usaremos la técnica de {\bf medoides} según \cite{reynolds_clustering_2006}. Los tres conglomerados se muestran en la Figura \ref{clustmap}.
+% 
+<<getMap, echo=FALSE,results=hide>>=
+folder='COL_maps'
+file='COL_adm1.shp'
+mapaFile=file.path(folder,file)
+mapCol <- rgdal::readOGR(mapaFile,stringsAsFactors=F) 
+sub_colb=colb[,c(1:2,7:9)]
+mapCol_idh=merge(mapCol,sub_colb, by.x='NAME_1', by.y='Departamento',all.x=F)
+@
+% 
+% 
+<<echo=FALSE>>=
+dimensions=c("NAME_1","IDH","cabeLog","restoLog")
+
+# creo un nuevo data frame con esas:
+dataCluster=mapCol_idh@data[,c(dimensions)]
+
+# como la data es numerica la normalizo (menos la column 1):
+dataCluster[,-1]=scale(dataCluster[,-1])
+
+## APLICANDO TECNICA KMEANS
+
+# calculo 3 clusters
+
+resultado=kmeans(dataCluster[,-1],3)
+
+#creo data frame con los clusters:
+clusters=as.data.frame(resultado$cluster)
+
+# añado columna con nombre de regiones
+clusters$NAME_1=dataCluster$NAME_1
+names(clusters)=c('cluster','NAME_1')
+#hago el merge hacia el mapa:
+mapCol_idh=merge(mapCol_idh,clusters, by='NAME_1',all.x=F)
+@
+%
+\begin{figure}[h]
+\centering
+%\begin{adjustbox}{width=5cm,height=8cm,clip,trim=1cm 2.5cm 0cm 2.5cm}
+<<plotMap1, echo=FALSE, fig=TRUE>>=
+#variable a colorear
+varToPLot=mapCol_idh$cluster
+# decidir color:
+#unique(varToPLot)
+#aggregate(mapCol_idh@data[,c(10,11,12)],by=list(mapCol_idh@data$cluster),FUN=mean)
+#preparo colores
+numberOfClasses = length(unique(varToPLot)) 
+colorForScale='Set2'
+paleta = brewer.pal(numberOfClasses, colorForScale)
+# grafico mapa basico
+plot(mapCol,col='grey',border=0)
+# grafico mapa cluster
+plot(mapCol_idh, col = paleta[varToPLot],border=F,add=T)
+legend('left', legend = c("LOW","UP","MEDIUM"),fill = paleta, cex = 0.6, bty = "n",title="conglomerado")
+@
+%\end{adjustbox}
+\caption{Regiones conglomerados segun sus poblaciones}\label{clustmap}
+\end{figure}
+% 
+\bibliographystyle{apalike}
+\renewcommand{\refname}{Bibliografía}
+\bibliography{Colombia}
+%
+
+\end{document}
